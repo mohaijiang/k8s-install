@@ -1,0 +1,44 @@
+---
+- hosts: master
+  tasks:
+    - name: flannel
+      shell: |
+        kubectl apply -f https://raw.githubusercontent.com/flannel-io/flannel/master/Documentation/kube-flannel.yml
+
+    - name: Check that the devnet.md exists
+      stat:
+        path: /usr/local/bin/helm
+      register: helm_status
+
+    - name: helm install
+      shell: |
+        wget https://get.helm.sh/helm-v3.11.1-linux-amd64.tar.gz
+        tar -xzvf helm-v3.11.1-linux-amd64.tar.gz
+        mv linux-amd64/helm /usr/local/bin
+        rm -rf linux-amd64
+        rm -rf helm-v3.11.1-linux-amd64.tar.gz
+      when: helm_status.stat.exists == False
+
+- hosts: all
+  tasks:
+    - name: apt-get install open-iscsi
+      ansible.builtin.apt:
+        name: "{{ item }}"
+        state: present
+        update_cache: yes
+      with_items:
+        - open-iscsi
+        - jq
+        - nfs-common
+
+    - name: modprobe iscsi_tcp
+      shell: |
+        modprobe iscsi_tcp
+
+- hosts: master
+  tasks:
+    - name: install longhorn
+      shell: |
+        helm repo add longhorn https://charts.longhorn.io
+        helm repo update
+        helm install longhorn longhorn/longhorn --namespace longhorn-system --create-namespace --version 1.4.0

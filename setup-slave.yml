@@ -1,7 +1,8 @@
 ---
-- hosts: master
+- hosts: slave
   tasks:
-    - name: kubeadm init
+    - name: kubeadm join
       shell: |
-        kubeadm init --image-repository registry.aliyuncs.com/google_containers --pod-network-cidr 10.244.0.0/16
+        kubeadm join 192.168.0.13:6443 --token et5xfq.0ypgwk0fdxomwwxb \
+        --discovery-token-ca-cert-hash sha256:4f9ced4ae35f0ca3ee2a87eedc577a47ddd6689e80c9c6d8e2ae5541af8d69c1 
 
