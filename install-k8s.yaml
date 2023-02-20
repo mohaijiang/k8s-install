@@ -1,0 +1,30 @@
+---
+- hosts: all
+  tasks:
+    - name: install apt-transport-https
+      ansible.builtin.apt:
+        name: apt-transport-https
+        state: present
+        update_cache: yes
+
+    - name: set kubernetes source
+      shell: |
+        curl https://mirrors.aliyun.com/kubernetes/apt/doc/apt-key.gpg | sudo apt-key add - 
+        cat <<EOF >/etc/apt/sources.list.d/kubernetes.list
+        deb https://mirrors.aliyun.com/kubernetes/apt/ kubernetes-xenial main
+        EOF
+
+    - name: install kubeadm kubectl kubelet
+      ansible.builtin.apt:
+        name: "{{ item }}"
+        state: present
+        update_cache: yes
+        allow_downgrade: yes
+      with_items:
+        - kubectl=1.21.4-00
+        - kubelet=1.21.4-00
+        - kubeadm=1.21.4-00
+
+    - name: Set a hostname
+      ansible.builtin.hostname:
+        name: "{{ inventory_hostname }}"

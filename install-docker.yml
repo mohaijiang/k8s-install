@@ -1,0 +1,38 @@
+---
+- hosts: all
+  tasks:
+    - name: remove docker
+      ansible.builtin.apt:
+        name: "{{ item }}"
+        state: absent
+      with_items:
+        - docker
+        - docker-engine
+        - docker.io
+        - containerd
+        - runc
+
+    - name: install ca-certificates  curl     gnupg     lsb-release
+      ansible.builtin.apt:
+        name: "{{ item }}"
+        state: present
+        update_cache: yes
+      with_items:
+        - ca-certificates
+        - curl
+        - gnupg
+        - lsb-release
+
+    - name: 安装GPG证书
+      shell: |
+        curl -fsSL https://mirrors.aliyun.com/docker-ce/linux/ubuntu/gpg | sudo apt-key add -
+
+    - name: 写入软件源信息
+      shell: |
+        sudo add-apt-repository "deb [arch=amd64] https://mirrors.aliyun.com/docker-ce/linux/ubuntu $(lsb_release -cs) stable"
+
+    - name: install docker-ce
+      ansible.builtin.apt:
+        name: docker-ce
+        state: present
+        update_cache: yes
